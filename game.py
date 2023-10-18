@@ -93,7 +93,7 @@ class Game:
             self.player_two.used_marks.append("0")
 
     def ai_play(self, mark, board):
-        from adding_ai import Ai
+        from ai_script import Ai
 
         if mark == "x":
             opponent_mark = "0"
