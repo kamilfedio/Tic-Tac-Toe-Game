@@ -16,7 +16,10 @@ class Board:
     # updating board after move
     def update_board(self, column, row, player):
         row = self.rows_indexes.index(row)
-        column = self.columns_indexes.index(column)
+        if column not in self.rows_indexes:
+            column = self.columns_indexes.index(column)
+        else:
+            column = int(column)
         if self.board[row][column] == "-":
             self.board[row][column] = player
             return True
@@ -56,12 +59,13 @@ class Board:
 
 
 class Player:
-    def __init__(self, name) -> None:
+    def __init__(self, name, is_ai=False) -> None:
         self.name = name
         self.wins = 0
         self.loses = 0
         self.draws = 0
         self.used_marks = []
+        self.is_ai = is_ai
 
     def __repr__(self):
         return f"{self.name} | {self.wins}W/{self.draws}D/{self.loses}L | {', '.join(self.used_marks)}"
@@ -75,7 +79,7 @@ class Game:
     def __init__(self, name_one="Player 1", name_two="Player 2"):
         # init players
         self.player_one = Player(name_one)
-        self.player_two = Player(name_two)
+        self.player_two = Player(name_two, is_ai=True)
         self.players.extend([self.player_one, self.player_two])
 
         # init board
@@ -88,8 +92,15 @@ class Game:
         else:
             self.player_two.used_marks.append("0")
 
-    def enter_place(self, queue, round_idx):
-        return
+    def ai_play(self, mark, board):
+        from adding_ai import Ai
+
+        if mark == "x":
+            opponent_mark = "0"
+        else:
+            opponent_mark = "x"
+        ai = Ai(mark, opponent_mark, board)
+        return ai.main()
 
     def play(self):
         import os
@@ -118,8 +129,18 @@ class Game:
 
                 self.board.display_board()
 
-                user_input = input("Enter place: ")
                 while True:
+                    if queue[round_idx].is_ai:
+                        res = self.ai_play(
+                            queue[round_idx].used_marks[-1], self.board.board
+                        )
+                        self.board.update_board(
+                            str(res[1]), str(res[0]), queue[round_idx].used_marks[-1]
+                        )
+                        break
+
+                    user_input = input("Enter place: ")
+
                     if (
                         user_input[0].lower() in "abc"
                         and user_input[1].lower() in "012"
@@ -136,7 +157,6 @@ class Game:
                             )
                             break
                     print("[ERROR] You entered wrong place name")
-                    user_input = input("Enter place: ")
 
                 os.system("cls")
 
@@ -167,7 +187,7 @@ class Game:
             print("\n" + "*" * 20, "SCOREBOARD", "*" * 20)
             print(self.player_one)
             print(self.player_two)
-            user_dec = input("\n\nDo you want to play next? [y/n]")
+            user_dec = input("\n\nDo you want to play next? [y/n]: ")
             if user_dec == "y":
                 self.board.clear_board()
                 os.system("cls")
@@ -175,6 +195,7 @@ class Game:
             else:
                 break
 
-if __name__ == '__main__':
-  game = Game()
-  game.play()
+
+if __name__ == "__main__":
+    game = Game()
+    game.play()
