@@ -59,16 +59,16 @@ class Board:
 
 
 class Player:
-    def __init__(self, name, is_ai=False) -> None:
+    def __init__(self, name, is_bot=False) -> None:
         self.name = name
         self.wins = 0
         self.loses = 0
         self.draws = 0
         self.used_marks = []
-        self.is_ai = is_ai
+        self.is_bot = is_bot
 
     def __repr__(self):
-        return f"{self.name} | {self.wins}W/{self.draws}D/{self.loses}L | {', '.join(self.used_marks)}"
+        return f"{self.name} {'[bot]' if self.is_bot else ''} | {self.wins}W/{self.draws}D/{self.loses}L | {', '.join(self.used_marks)}"
 
 
 class Game:
@@ -78,8 +78,8 @@ class Game:
 
     def __init__(self, name_one="Player 1", name_two="Player 2"):
         # init players
-        self.player_one = Player(name_one)
-        self.player_two = Player(name_two, is_ai=True)
+        self.player_one = Player(name_one, is_bot=True)
+        self.player_two = Player(name_two, is_bot=False)
         self.players.extend([self.player_one, self.player_two])
 
         # init board
@@ -92,18 +92,19 @@ class Game:
         else:
             self.player_two.used_marks.append("0")
 
-    def ai_play(self, mark, board):
-        from ai_script import Ai
+    def bot_play(self, mark, board):
+        from bot import TicTacToeBot
 
         if mark == "x":
             opponent_mark = "0"
         else:
             opponent_mark = "x"
-        ai = Ai(mark, opponent_mark, board)
-        return ai.main()
+        tic_tac_toe_bot = TicTacToeBot(mark, opponent_mark, board)
+        return tic_tac_toe_bot.main()
 
     def play(self):
         import os
+        import time
 
         while True:
             round_idx = 0
@@ -127,17 +128,19 @@ class Game:
                         "<\n",
                     )
 
-                self.board.display_board()
-
                 while True:
-                    if queue[round_idx].is_ai:
-                        res = self.ai_play(
+                    if queue[round_idx].is_bot:
+                        res = self.bot_play(
                             queue[round_idx].used_marks[-1], self.board.board
                         )
                         self.board.update_board(
                             str(res[1]), str(res[0]), queue[round_idx].used_marks[-1]
                         )
+                        self.board.display_board()
+                        time.sleep(1)
                         break
+
+                    self.board.display_board()
 
                     user_input = input("Enter place: ")
 
