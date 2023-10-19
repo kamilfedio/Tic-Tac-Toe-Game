@@ -59,7 +59,7 @@ class Board:
 
 
 class Player:
-    def __init__(self, name, is_bot=False) -> None:
+    def __init__(self, name="Player", is_bot=False) -> None:
         self.name = name
         self.wins = 0
         self.loses = 0
@@ -68,7 +68,7 @@ class Player:
         self.is_bot = is_bot
 
     def __repr__(self):
-        return f"{self.name} {'[bot]' if self.is_bot else ''} | {self.wins}W/{self.draws}D/{self.loses}L | {', '.join(self.used_marks)}"
+        return f"{self.name} {'[bot]' if self.is_bot else ''} | {self.wins}W/{self.draws}D/{self.loses}L | {', '.join(self.used_marks[:-1])}"
 
 
 class Game:
@@ -76,14 +76,22 @@ class Game:
 
     players = []
 
-    def __init__(self, name_one="Player 1", name_two="Player 2"):
+    def __init__(self):
         # init players
-        self.player_one = Player(name_one, is_bot=True)
-        self.player_two = Player(name_two, is_bot=False)
+        self.player_one = Player()
+        self.player_two = Player()
         self.players.extend([self.player_one, self.player_two])
 
         # init board
         self.board = Board()
+
+        # settings
+        self.automate_game: bool = True  # True/False
+        self.player_one.name: str = "Player 1"  # custom player name
+        self.player_two.name: str = "Player 2"  # custom player name
+        self.player_one.is_bot: bool = True  # True/False
+        self.player_two.is_bot: bool = True  # True/False
+        self.to_win: int = 5  # count of wins to end game if automate_game is True
 
     def change_marks(self):
         self.player_one.used_marks.append(self.random.choice(["x", "0"]))
@@ -102,17 +110,48 @@ class Game:
         tic_tac_toe_bot = TicTacToeBot(mark, opponent_mark, board)
         return tic_tac_toe_bot.main()
 
+    def show_scoreboard(self):
+        print(self.player_one)
+        print(self.player_two)
+        print()
+
+    def continue_playing(self):
+        import os
+        import time
+
+        if self.automate_game:
+            if max(self.player_one.wins, self.player_two.wins) == self.to_win:
+                os.system("cls")
+                print("Winner")
+                self.show_scoreboard()
+                return False
+
+            time.sleep(1)
+            os.system("cls")
+            self.board.clear_board()
+            return True
+
+        if not self.automate_game:
+            user_dec = input("\n\nDo you want to play next? [y/n]: ")
+            if user_dec == "y":
+                self.board.clear_board()
+                os.system("cls")
+                return True
+            else:
+                return False
+
     def play(self):
         import os
         import time
 
         while True:
+            os.system("cls")
             round_idx = 0
             self.change_marks()
             queue = self.random.sample(self.players, k=2)
-            print("\n" + "-" * 20, "START", "-" * 20)
 
             while True:
+                self.show_scoreboard()
                 if queue[round_idx].name == self.player_one.name:
                     print(
                         f"{self.player_one.name} - {self.player_one.used_marks[-1]}",
@@ -164,21 +203,27 @@ class Game:
                 os.system("cls")
 
                 if self.board.check_if_draw():
-                    print("Draw")
                     self.player_one.draws += 1
                     self.player_two.draws += 1
+                    self.show_scoreboard()
+
+                    print("Draw\n\n")
+                    self.board.display_board()
+                    time.sleep(1)
                     break
 
                 if self.board.check_win(queue[round_idx].used_marks[-1]):
-                    print(f"{queue[round_idx].name} is winner")
-                    self.board.display_board()
-
                     if queue[round_idx].name == self.player_one.name:
                         self.player_one.wins += 1
                         self.player_two.loses += 1
                     else:
                         self.player_one.loses += 1
                         self.player_two.wins += 1
+
+                    self.show_scoreboard()
+                    print(f"{queue[round_idx].name} is winner\n\n")
+
+                    self.board.display_board()
 
                     break
 
@@ -187,18 +232,12 @@ class Game:
                 else:
                     round_idx = 0
 
-            print("\n" + "*" * 20, "SCOREBOARD", "*" * 20)
-            print(self.player_one)
-            print(self.player_two)
-            user_dec = input("\n\nDo you want to play next? [y/n]: ")
-            if user_dec == "y":
-                self.board.clear_board()
-                os.system("cls")
-                continue
-            else:
+            if not self.continue_playing():
                 break
 
 
 if __name__ == "__main__":
     game = Game()
     game.play()
+
+### 88-94 line - settings
