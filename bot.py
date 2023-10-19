@@ -56,8 +56,9 @@ class TicTacToeBot:
             for idx_col in range(3):
                 if self.board[idx_row][idx_col] == "-":
                     locations.append((idx_row, idx_col))
-        
+
         import random
+
         return random.choice(locations)
 
     def main(
