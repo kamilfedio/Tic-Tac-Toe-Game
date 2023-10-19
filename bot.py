@@ -1,37 +1,4 @@
-class Board:
-    # rows & columns
-    rows_indexes = ["0", "1", "2"]
-    columns_indexes = ["a", "b", "c"]
-
-    # board
-    def __init__(self) -> None:
-        self.clear_board()
-
-    # printing board
-    def display_board(self):
-        print("\ A B C")
-        for idx, line in enumerate(self.board):
-            print(self.rows_indexes[idx], "|".join(line))
-
-    # updating board after move
-    def update_board(self, column, row, player):
-        row = self.rows_indexes.index(row)
-        column = self.columns_indexes.index(column)
-        if self.board[row][column] == "-":
-            self.board[row][column] = player
-            return True
-        else:
-            return False
-
-    def clear_board(self):
-        self.board = [
-            ["0", "0", "-"],
-            ["-", "-", "-"],
-            ["-", "-", "-"],
-        ]
-
-
-class Ai:
+class TicTacToeBot:
     def __init__(self, player_mark, opponent_mark, board) -> None:
         self.player_mark = player_mark
         self.opponent_mark = opponent_mark
@@ -58,45 +25,40 @@ class Ai:
         row_from_left = [self.board[i][i] for i in range(3)]
         row_from_right = [self.board[i][2 - i] for i in range(3)]
 
-        if row_from_left.count(mark) == 2:
-            try:
-                return row_from_left.index("-"), row_from_left.index("-")
-            except:
-                return None
+        if row_from_left.count(mark) == 2 and "-" in row_from_left:
+            return row_from_left.index("-"), row_from_left.index("-")
 
-        if row_from_right.count(mark) == 2:
-            try:
-                if row_from_right.index("-") == 0:
-                    return 0, 2
-            except:
-                try:
-                    if row_from_right.index("-") == 2:
-                        return 2, 0
-                except:
-                    try:
-                        return 1, 1
-                    except:
-                        return None
+        if row_from_right.count(mark) == 2 and "-" in row_from_right:
+            if row_from_right.index("-") == 0:
+                return 0, 2
+            if row_from_right.index("-") == 2:
+                return 2, 0
+            else:
+                return 1, 1
 
     def check_center(self):
         if self.board[1][1] == "-":
             return (1, 1)
 
     def check_corners(self, mark):
-        if self.board[0][0] == mark:
+        if self.board[0][0] == mark and self.board[2][2] == "-":
             return (2, 2)
-        elif self.board[0][2] == mark:
+        elif self.board[0][2] == mark and self.board[2][0] == "-":
             return (2, 0)
-        elif self.board[2][2] == mark:
+        elif self.board[2][2] == mark and self.board[0][0] == "-":
             return (0, 0)
-        elif self.board[2][0] == mark:
+        elif self.board[2][0] == mark and self.board[0][2] == "-":
             return (0, 2)
 
     def check_first_free(self):
+        locations = []
         for idx_row in range(3):
             for idx_col in range(3):
                 if self.board[idx_row][idx_col] == "-":
-                    return (idx_row, idx_col)
+                    locations.append((idx_row, idx_col))
+        
+        import random
+        return random.choice(locations)
 
     def main(
         self,
